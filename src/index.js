@@ -22,38 +22,69 @@ class Board extends React.Component {
     };
   }
 
+  handleClick(i) {
+    const squares = this.state.squares.slice();
 
-  handleClick(i){
-
-  var center_checker;
-  center_checker = (this.state.xIsNext ? 'X' : 'O');
-  if (squares[4] == center_checker) {
-    this.setState({ alert:"checking center"});
-    var temp_content_i = squares[i];
-    squares[i] = this.state.xIsNext ? 'X' : 'O';
     if (calculateWinner(squares)) {
       return;
     }
+
+    if ((this.state.turn_number > 5) && (this.state.turn_number % 2 === 0)) {
+
+      //if statement to check if center contains the current player
+      let center_checker = this.state.xIsNext ? 'X' : 'O';
+      if (squares[4] === center_checker) {
+        this.setState({ 
+          squares: squares,
+          alert:"checking center"});
+        var temp_content_i = squares[i];
+        squares[i] = this.state.xIsNext ? 'X' : 'O';
+        if (calculateWinner(squares)) {
+          this.setState({ alert:"Player " + center_checker + " won!",
+          squares: squares,
+        });
+          return;
+        }
+        else {
+          squares[i] = temp_content_i;
+          //didn't return because it didn't win. Must clear middle and increase turn number
+          this.setState({ squares: squares,
+            alert:"that move won't win, removing your piece from cetner"});
+          //clears the middle
+          squares[4] = null;
+
+          this.setState({ squares: squares,
+            alert:"that move won't win, removing your piece from cetner"});
+          
+
+          //increases turn number
+          this.setState({ turn_number: this.state.turn_number + 1 });
+        }
+      }
+
+
+      else {
+        squares[i] = null;
+        this.setState({
+          squares: squares,
+          turn_number: this.state.turn_number + 1,
+        });
+      }
+    }
+
     else {
-      squares[i] = temp_content_i;
-      //didn't return because it didn't win. Must clear middle and increase turn number
+      squares[i] = this.state.xIsNext ? 'X' : 'O';
+      this.setState({
+        squares: squares,
+        xIsNext: !this.state.xIsNext,
+        turn_number: this.state.turn_number + 1,
+      });
+    }
 
-      //clears the middle
-      squares[4] = null;
-
-      //increases turn number
-      this.setState({ turn_number: this.state.turn_number + 1 });
+    if (calculateWinner(squares)) {
+      return;
     }
   }
-  else {
-    squares[i] = this.state.xIsNext ? 'X' : 'O';
-    this.setState({
-      squares: squares,
-      xIsNext: !this.state.xIsNext,
-      turn_number: this.state.turn_number + 1,
-    });
-  }
-}
 
 
   renderSquare(i) {
