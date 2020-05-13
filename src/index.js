@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+
 function Square(props) {
   return (
     <button className="square" onClick={props.onClick}>
@@ -19,10 +20,13 @@ class Board extends React.Component {
       xIsNext: true,
       current_player: null,
       alert: "here are player alerts",
+      prevRemove: -1,
     };
   }
 
   handleClick(i) {
+
+    var selectedInvalidSquare = false;
     const squares = this.state.squares.slice();
 
     if (calculateWinner(squares)) {
@@ -34,28 +38,37 @@ class Board extends React.Component {
       //if statement to check if center contains the current player
       let center_checker = this.state.xIsNext ? 'X' : 'O';
       if (squares[4] === center_checker) {
-        this.setState({ 
+        this.setState({
           squares: squares,
-          alert:"checking center"});
+          alert: "checking center"
+        });
         var temp_content_i = squares[i];
         squares[i] = this.state.xIsNext ? 'X' : 'O';
         if (calculateWinner(squares)) {
-          this.setState({ alert:"Player " + center_checker + " won!",
-          squares: squares,
-        });
+          this.setState({
+            alert: "Player " + center_checker + " won!",
+            squares: squares,
+          });
           return;
         }
         else {
           squares[i] = temp_content_i;
           //didn't return because it didn't win. Must clear middle and increase turn number
-          this.setState({ squares: squares,
-            alert:"that move won't win, removing your piece from cetner"});
+          this.setState({
+            squares: squares,
+            alert: "removing your piece from center"
+          });
           //clears the middle
           squares[4] = null;
 
-          this.setState({ squares: squares,
-            alert:"that move won't win, removing your piece from cetner"});
-          
+
+          this.setState({
+            squares: squares,
+            alert: "removing your piece from center",
+            prevRemove: 4,
+          });
+
+
 
           //increases turn number
           this.setState({ turn_number: this.state.turn_number + 1 });
@@ -63,13 +76,77 @@ class Board extends React.Component {
       }
 
 
+
       else {
         squares[i] = null;
+
         this.setState({
           squares: squares,
+          prevRemove: i,
           turn_number: this.state.turn_number + 1,
         });
       }
+    }
+
+
+    else if (this.state.turn_number > 5) {
+      var validMoves = [0, 3, 4, 5, 2];
+      switch (this.state.prevRemove) {
+        case 0:
+          validMoves = [3, 4, 1];
+          break;
+        case 1:
+          validMoves = [0, 3, 4, 5, 2]
+          break;
+        case 2:
+          validMoves = [1, 4, 5]
+          break;
+        case 3:
+          validMoves = [0, 1, 4, 7, 8]
+          break;
+        case 4:
+          validMoves = [0, 1, 2, 3, 5, 6, 7, 8]
+          break;
+        case 5:
+          validMoves = [1, 2, 4, 7, 8]
+          break;
+        case 6:
+          validMoves = [3, 4, 7]
+          break;
+        case 1:
+          validMoves = [6, 3, 4, 5, 8]
+          break;
+        case 1:
+          validMoves = [7, 4, 5]
+          break;
+        default:
+      }
+
+      if (validMoves.includes(i)) {
+        squares[i] = this.state.xIsNext ? 'X' : 'O';
+      }
+      else {
+        this.setState({ alert: "not a valid move because it's not adjacent, randomly selecting a move for you, or skipping turn if none is possible" });
+        selectedInvalidSquare = true;
+        for (var index = 0; index < validMoves.length; index++) {
+          if (squares[validMoves[index]] == null) {
+            squares[validMoves[index]] = this.state.xIsNext ? 'X' : 'O';
+            break;
+          }
+        }
+      }
+
+
+      if (!selectedInvalidSquare) {
+        squares[i] = this.state.xIsNext ? 'X' : 'O';
+      }
+      this.setState({
+        squares: squares,
+        xIsNext: !this.state.xIsNext,
+        turn_number: this.state.turn_number + 1,
+      });
+
+      //ending bracket for the huge else statement
     }
 
     else {
@@ -80,7 +157,6 @@ class Board extends React.Component {
         turn_number: this.state.turn_number + 1,
       });
     }
-
     if (calculateWinner(squares)) {
       return;
     }
